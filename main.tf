@@ -65,6 +65,12 @@ resource "azurerm_windows_web_app" "marathon_client" {
     "REDIS_CONNECTION_STRING"    = "redis://${azurerm_redis_cache.redis.hostname}.redis.cache.windows.net:${azurerm_redis_cache.redis.ssl_port}?ssl=true&sslverify=false"
 
   }
+
+  connection_string {
+    name  = "Database"
+    type  = "SQLServer"
+    value = "Server=tcp:${azurerm_mssql_server.mssql_server.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=True;Encrypt=True"
+  }
 }
 
 resource "azurerm_mssql_server" "mssql_server" {
