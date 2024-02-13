@@ -26,6 +26,7 @@ resource "azurerm_service_plan" "marathon_service_plan" {
   location            = azurerm_resource_group.marathon.location
   sku_name            = "F1"
   os_type             = "Windows"
+
 }
 resource "azurerm_windows_web_app" "marathon_api" {
   name                = "marathon-api"
@@ -42,6 +43,18 @@ resource "azurerm_windows_web_app" "marathon_api" {
 
     }
 
+  }
+
+  connection_string {
+    name  = "Database"
+    type  = "SQLServer"
+    value = "Server=tcp:${azurerm_mssql_server.mssql_server.name},1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=True;Encrypt=True"
+  }
+
+  connection_string {
+    name  = "Redis"
+    type  = "RedisCache"
+    value = azurerm_redis_cache.redis.primary_connection_string
   }
 
 }
@@ -66,11 +79,7 @@ resource "azurerm_windows_web_app" "marathon_client" {
 
   }
 
-  connection_string {
-    name  = "Database"
-    type  = "SQLServer"
-    value = "Server=tcp:${azurerm_mssql_server.mssql_server.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=True;Encrypt=True"
-  }
+
 }
 
 resource "azurerm_mssql_server" "mssql_server" {
@@ -111,15 +120,15 @@ resource "azurerm_redis_cache" "redis" {
   }
 }
 
-output "sql_connection_string" {
-  value     = "Server=tcp:${azurerm_mssql_server.mssql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=True;Encrypt=True"
-  sensitive = true
-}
+# output "sql_connection_string" {
+#   value     = "Server=tcp:${azurerm_mssql_server.mssql_server.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=True;Encrypt=True"
+#   sensitive = true
+# }
 
-output "redis_connection_string" {
-  value     = azurerm_redis_cache.redis.primary_connection_string
-  sensitive = true
-}
+# output "redis_connection_string" {
+#   value     = azurerm_redis_cache.redis.primary_connection_string
+#   sensitive = true
+# }
 
 resource "azurerm_redis_firewall_rule" "redis_firewall" {
   name                = "redisFirewall12"
