@@ -1,4 +1,3 @@
-
 name: 'Terraform'
 
 on:
@@ -8,35 +7,61 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   build-and-deploy:
-    name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: production
-
-    defaults:
-      run:
-        shell: bash
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      # Install Azure CLI
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
+      # Authenticate with Azure CLI
+      - name: Azure CLI Authentication
+        run: az login
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Check Azure CLI Installation Path
+      - name: Check Azure CLI Installation Path
+        run: whereis az
+
+      # Check Azure CLI Installation Directory Permissions
+      - name: Check Azure CLI Permissions
+        run: |
+          ls -l /opt/az
+          if [ -f "/opt/az/bin/az" ]; then
+            sudo chmod +x /opt/az/bin/az   # Ensure execute permission for the Azure CLI executable
+          else
+            echo "Azure CLI executable not found."
+          fi
+
+      # Azure login
       - name: Azure login
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
+      # Azure CLI script
       - name: Azure CLI script
         uses: azure/CLI@v1
         with:
           azcliversion: latest
           inlineScript: |
             az account show
+
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          cli_config_credentials_token: ${{ secrets.ZIDAR }}
+          terraform_version: 1.6.6  # Specify the version of Terraform you want to use
 
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
