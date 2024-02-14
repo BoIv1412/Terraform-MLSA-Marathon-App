@@ -9,75 +9,65 @@ permissions:
   contents: read
 
 jobs:
-  build-and-deploy:
+  terraform:
+    name: 'Terraform'
     runs-on: ubuntu-latest
+    environment: production
+
+    defaults:
+      run:
+        shell: bash
+
     steps:
-      # Install Azure CLI
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    - name: Checkout
+      uses: actions/checkout@v3
 
-      # Authenticate with Azure CLI
-      - name: Azure CLI Authentication
-        run: az login
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    # Install Azure CLI
+    - name: Install Azure CLI
+      run: |
+        curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-      # Check Azure CLI Installation Path
-      - name: Check Azure CLI Installation Path
-        run: whereis az
+    # Authenticate with Azure CLI
+    - name: Azure CLI Authentication
+      run: az login
 
-      # Check Azure CLI Installation Directory Permissions
-      - name: Check Azure CLI Permissions
-        run: |
-          ls -l /opt/az
-          if [ -f "/opt/az/bin/az" ]; then
-            sudo chmod +x /opt/az/bin/az   # Ensure execute permission for the Azure CLI executable
-          else
-            echo "Azure CLI executable not found."
-          fi
+    # Check Azure CLI Installation Path
+    - name: Check Azure CLI Installation Path
+      run: whereis az
 
-      # Azure login
-      - name: Azure login
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
+    # Check Azure CLI Installation Directory Permissions
+    - name: Check Azure CLI Permissions
+      run: |
+        ls -l /opt/az
+        if [ -f "/opt/az/bin/az" ]; then
+          sudo chmod +x /opt/az/bin/az   # Ensure execute permission for the Azure CLI executable
+        else
+          echo "Azure CLI executable not found."
+        fi
 
-      # Azure CLI script
-      - name: Azure CLI script
-        uses: azure/CLI@v1
-        with:
-          azcliversion: latest
-          inlineScript: |
-            az account show
+    # Install the specific version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.ZIDAR }}
+        terraform_version: 1.6.6  # Specify the version of Terraform you want to use
 
-      # Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          cli_config_credentials_token: ${{ secrets.ZIDAR }}
-          terraform_version: 1.6.6  # Specify the version of Terraform you want to use
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
 
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      - name: Terraform Init
-        run: terraform init
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform fmt -check
 
-      # Checks that all Terraform configuration files adhere to a canonical format
-      - name: Terraform Format
-        run: terraform fmt -check
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+       
+      run: |
+        export PATH=$PATH:/opt/az/bin
+        terraform plan -input=false
 
-      # Generates an execution plan for Terraform
-      - name: Terraform Plan
-        run: |
-          export PATH=$PATH:/opt/az/bin
-          terraform plan -input=false
-
-      # On push to "main", build or change infrastructure according to Terraform configuration files
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+    # On push to "main", build or change infrastructure according to Terraform configuration files
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
