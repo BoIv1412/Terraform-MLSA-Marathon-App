@@ -7,6 +7,7 @@ terraform {
       version = ">3.0.0"
     }
   }
+
 }
 
 # Configure the Microsoft Azure Provider
@@ -114,7 +115,7 @@ resource "azurerm_mssql_database" "mssql_database" {
 
   # prevent the possibility of accidental data loss
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
@@ -156,15 +157,34 @@ resource "azurerm_key_vault" "key_vault" {
   sku_name                 = "standard"
 }
 
+resource "azurerm_key_vault_access_policy" "azurerm_key_vault_access_policy1" {
+  key_vault_id = azurerm_key_vault.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+  ]
+
+  secret_permissions = [
+    "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
+  ]
+}
+
+
 data "azuread_service_principal" "terraform" {
   display_name = "MarathonT"
 }
 
-resource "azurerm_key_vault_access_policy" "terraform_policy" {
-  key_vault_id       = azurerm_key_vault.key_vault.id
-  tenant_id          = data.azurerm_client_config.current.tenant_id
-  object_id          = data.azuread_service_principal.terraform.object_id
-  secret_permissions = ["Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"]
+resource "azurerm_key_vault_access_policy" "azurerm_key_vault_access_policy2" {
+  key_vault_id = azurerm_key_vault.key_vault.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azuread_service_principal.terraform.object_id
+  secret_permissions = [
+
+    "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
+
+  ]
 }
 
 resource "azurerm_key_vault_secret" "key_vault_secret1" {
