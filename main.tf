@@ -13,9 +13,11 @@ terraform {
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
   skip_provider_registration = true # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
-  features {
-
-  }
+  features {}
+  client_id       = "e83117cc-02a0-4222-86f6-bd194609cb63"
+  client_secret   = "tmP8Q~Hi52gRwTl0irLKllmWjP4jxML_5gIGddyA"
+  tenant_id       = "84c31ca0-ac3b-4eae-ad11-519d80233e6f"
+  subscription_id = "0f1d139f-a64f-4a0b-bb90-2abdea4f9943"
 }
 
 data "azurerm_client_config" "current" {}
@@ -157,10 +159,10 @@ resource "azurerm_key_vault" "key_vault" {
   sku_name                 = "standard"
 }
 
-resource "azurerm_key_vault_access_policy" "azurerm_key_vault_access_policy1" {
+resource "azurerm_key_vault_access_policy" "bojan_access" {
   key_vault_id = azurerm_key_vault.key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+  object_id    = "b57ee40a-d60f-4fec-888e-91ba79c1f277"
 
   key_permissions = [
     "Get",
