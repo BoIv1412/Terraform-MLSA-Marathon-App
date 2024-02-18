@@ -114,7 +114,7 @@ resource "azurerm_redis_cache" "redis" {
 }
 
 resource "azurerm_redis_firewall_rule" "redis_firewall" {
-  name                = "redisFirewall12"
+  name                = var.redis_name
   redis_cache_name    = azurerm_redis_cache.redis.name
   resource_group_name = azurerm_resource_group.marathon.name
   start_ip            = "0.0.0.0"
@@ -122,7 +122,7 @@ resource "azurerm_redis_firewall_rule" "redis_firewall" {
 }
 
 resource "azurerm_mssql_firewall_rule" "dbfirewall" {
-  name             = "FirewallRule1"
+  name             = var.redis_firewall
   server_id        = azurerm_mssql_server.mssql_server.id
   start_ip_address = "0.0.0.0"
   end_ip_address   = "255.255.255.255"

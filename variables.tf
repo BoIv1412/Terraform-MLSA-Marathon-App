@@ -87,3 +87,15 @@ variable "display_name" {
   type        = string
   default     = "MarathonT"
 }
+
+variable "redis_name" {
+  description = "Name for Redis"
+  type        = string
+  default     = "redisFirewall12"
+}
+
+variable "redis_firewall" {
+  description = "Name for Redis Firewall"
+  type        = string
+  default     = "FirewallRule1"
+}
