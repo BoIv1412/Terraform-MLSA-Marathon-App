@@ -56,18 +56,24 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt -check
-
     # Generates an execution plan for Terraform
     - name: Terraform Plan
-       
       run: |
         export PATH=$PATH:/opt/az/bin
         terraform plan -input=false
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
     # On push to "main", build or change infrastructure according to Terraform configuration files
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
+
+      
+    # Deploy the .NET Core app to Azure Web App
+    - name: Deploy .NET Core app to Azure Web App
+      run: |
+          az webapp deployment source config-zip -g Marathon1 -n marathon-api --src ./publish.zip
