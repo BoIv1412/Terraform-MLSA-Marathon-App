@@ -71,3 +71,9 @@ jobs:
     - name: Terraform Apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
+
+      
+    # Deploy the .NET Core app to Azure Web App
+    - name: Deploy .NET Core app to Azure Web App
+      run: |
+          az webapp deployment source config-zip -g Marathon1 -n marathon-api --src ./publish.zip
