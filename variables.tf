@@ -1,23 +1,3 @@
-variable "client_id" {
-  description = "The client ID for authenticating to Azure."
-  type        = string
-}
-
-variable "client_secret" {
-  description = "The client secret for authenticating to Azure."
-  type        = string
-}
-
-variable "tenant_id" {
-  description = "The Azure Active Directory tenant ID."
-  type        = string
-}
-
-variable "subscription_id" {
-  description = "The Azure subscription ID."
-  type        = string
-}
-
 variable "location" {
   description = "The location where the Azure resources will be deployed."
   type        = string
