@@ -80,4 +80,4 @@ jobs:
       # Deploy the Client to Azure Web App
       - name: Deploy Frontend to Azure Web App
         run: |
-          az webapp deployment source config-zip -g Marathon1 -n marathon-client --src ./marathon-client.zip
+          az webapp deployment source config-zip -g Marathon1 -n marathon-client --src ./deployment.zip
