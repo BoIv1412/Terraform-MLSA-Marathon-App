@@ -10,18 +10,6 @@ variable "resource_group_name" {
   default     = "Marathon1"
 }
 
-variable "storage_account_name" {
-  description = "The name of the storage account."
-  type        = string
-  default     = "storagebackend12"
-}
-
-variable "storage_container_name" {
-  description = "The name of the storage container."
-  type        = string
-  default     = "tfstate"
-}
-
 variable "service_plan_name" {
   description = "The name of the Azure App Service plan."
   type        = string
