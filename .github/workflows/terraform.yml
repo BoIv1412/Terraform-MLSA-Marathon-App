@@ -75,4 +75,4 @@ jobs:
       # Deploy the .NET Core app to Azure Web App
       - name: Deploy .NET Core app to Azure Web App
         run: |
-          az webapp deployment source config-zip -g Marathon1 -n marathon-api --src ./publish.zip
+          az webapp deployment source config-zip -g Marathon1 -n marathon-api --src ./publish2.zip
