@@ -13,6 +13,10 @@ terraform {
 provider "azurerm" {
   skip_provider_registration = true # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
   features {}
+  client_id       = "e83117cc-02a0-4222-86f6-bd194609cb63"
+  tenant_id       = "84c31ca0-ac3b-4eae-ad11-519d80233e6f"
+  subscription_id = "0f1d139f-a64f-4a0b-bb90-2abdea4f9943"
+
 }
 
 data "azurerm_client_config" "current" {}
@@ -21,20 +25,6 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "marathon" {
   name     = var.resource_group_name
   location = var.location
-}
-
-resource "azurerm_storage_account" "storageacc" {
-  name                     = var.storage_account_name
-  resource_group_name      = azurerm_resource_group.marathon.name
-  location                 = azurerm_resource_group.marathon.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "storage_comtainer" {
-  name                  = var.storage_container_name
-  storage_account_name  = azurerm_storage_account.storageacc.name
-  container_access_type = "container" # Set the access type (e.g., private, blob, container)
 }
 
 resource "azurerm_service_plan" "marathon_service_plan" {
