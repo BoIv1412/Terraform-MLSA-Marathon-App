@@ -43,6 +43,10 @@ resource "azurerm_windows_web_app" "marathon_api" {
       current_stack  = "dotnet"
       dotnet_version = "v7.0"
     }
+    cors {
+      allowed_origins     = ["https://marathon-client.azurewebsites.net"]
+      support_credentials = true # Set to true if you want to allow credentials (like cookies or HTTP authentication) to be sent in the CORS request
+    }
   }
 }
 
@@ -57,6 +61,10 @@ resource "azurerm_windows_web_app" "marathon_client" {
     application_stack {
       current_stack = "node"
       node_version  = "~18"
+    }
+    cors {
+      allowed_origins     = ["https://marathon-api.azurewebsites.net"]
+      support_credentials = true # Set to true if you want to allow credentials (like cookies or HTTP authentication) to be sent in the CORS request
     }
   }
 }
@@ -135,6 +143,10 @@ resource "azurerm_key_vault_access_policy" "bojan_access" {
   secret_permissions = [
     "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
   ]
+
+  depends_on = [
+    azurerm_key_vault_secret.key_vault_secret2
+  ]
 }
 
 data "azuread_service_principal" "terraform" {
@@ -160,4 +172,8 @@ resource "azurerm_key_vault_secret" "key_vault_secret2" {
   name         = var.key_vault_secret_redis_connection_string_name
   value        = azurerm_redis_cache.redis.primary_connection_string
   key_vault_id = azurerm_key_vault.key_vault.id
+
+  depends_on = [
+    azurerm_key_vault_secret.key_vault_secret1
+  ]
 }
