@@ -23,10 +23,10 @@ provider "azurerm" {
       //recover_soft_deleted_key_vaults = true
     }
   }
-  client_id       = var.AZURE_CLIENT_ID
-  tenant_id       = var.AZURE_TENANT_ID
-  client_secret   = var.AZURE_CLIENT_SECRET
-  subscription_id = var.AZURE_SUBSCRIPTION_ID
+  client_id       = "e83117cc-02a0-4222-86f6-bd194609cb63"
+  tenant_id       = "84c31ca0-ac3b-4eae-ad11-519d80233e6f"
+  client_secret   = "tmP8Q~Hi52gRwTl0irLKllmWjP4jxML_5gIGddyA"
+  subscription_id = "0f1d139f-a64f-4a0b-bb90-2abdea4f9943"
 }
 
 data "azurerm_client_config" "current" {}
