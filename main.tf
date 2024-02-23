@@ -9,14 +9,27 @@ terraform {
   }
 }
 
+
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
   skip_provider_registration = true # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+
+    key_vault {
+      purge_soft_delete_on_destroy = true
+      //recover_soft_deleted_key_vaults = true
+    }
+  }
+  client_id       = var.AZURE_CLIENT_ID
+  tenant_id       = var.AZURE_TENANT_ID
+  client_secret   = var.AZURE_CLIENT_SECRET
+  subscription_id = var.AZURE_SUBSCRIPTION_ID
 }
 
 data "azurerm_client_config" "current" {}
-
 # Create a resource group
 resource "azurerm_resource_group" "marathon" {
   name     = var.resource_group_name
@@ -143,10 +156,6 @@ resource "azurerm_key_vault_access_policy" "bojan_access" {
   secret_permissions = [
     "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
   ]
-
-  depends_on = [
-    azurerm_key_vault_secret.key_vault_secret2
-  ]
 }
 
 data "azuread_service_principal" "terraform" {
@@ -166,6 +175,11 @@ resource "azurerm_key_vault_secret" "key_vault_secret1" {
   name         = var.key_vault_secret_connection_string_name
   value        = "Server=tcp:${azurerm_mssql_server.mssql_server.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login}@${azurerm_mssql_server.mssql_server.name};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
   key_vault_id = azurerm_key_vault.key_vault.id
+
+  depends_on = [
+    azurerm_key_vault_access_policy.azurerm_key_vault_access_policy2
+  ]
+
 }
 
 resource "azurerm_key_vault_secret" "key_vault_secret2" {
@@ -174,6 +188,6 @@ resource "azurerm_key_vault_secret" "key_vault_secret2" {
   key_vault_id = azurerm_key_vault.key_vault.id
 
   depends_on = [
-    azurerm_key_vault_secret.key_vault_secret1
+    azurerm_key_vault_access_policy.azurerm_key_vault_access_policy2
   ]
 }

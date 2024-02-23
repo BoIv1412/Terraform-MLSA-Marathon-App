@@ -87,3 +87,8 @@ variable "redis_firewall" {
   type        = string
   default     = "FirewallRule1"
 }
+
+variable "AZURE_CLIENT_ID" {}
+variable "AZURE_TENANT_ID" {}
+variable "AZURE_CLIENT_SECRET" {}
+variable "AZURE_SUBSCRIPTION_ID" {}
