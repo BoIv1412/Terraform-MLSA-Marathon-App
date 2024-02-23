@@ -28,8 +28,10 @@ jobs:
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
       # Authenticate with Azure CLI
-      - name: Azure CLI Authentication
-        run: az login
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Check Azure CLI Installation Path
       - name: Check Azure CLI Installation Path
@@ -61,11 +63,6 @@ jobs:
         run: |
           export PATH=$PATH:/opt/az/bin
           terraform plan -input=false
-        env:
-          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # On push to "main", build or change infrastructure according to Terraform configuration files
       - name: Terraform Apply
