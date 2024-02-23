@@ -22,6 +22,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      # Authenticate with Azure CLI using AZURE_CREDENTIALS
+      - name: Azure Login
+        run: |
+          echo '${{ secrets.AZURE_CREDENTIALS }}' > azure_credentials.json
+          az login --service-principal -u $(jq -r .clientId azure_credentials.json) -p $(jq -r .clientSecret azure_credentials.json) --tenant $(jq -r .tenantId azure_credentials.json)
+
       # Install Azure CLI
       - name: Install Azure CLI
         run: |
@@ -56,3 +62,4 @@ jobs:
       - name: Deploy Frontend to Azure Web App
         run: |
           az webapp deployment source config-zip -g Marathon1 -n marathon-client --src ./build1.zip
+
