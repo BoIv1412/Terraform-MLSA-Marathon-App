@@ -27,26 +27,6 @@ jobs:
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-      # Authenticate with Azure CLI
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # Check Azure CLI Installation Path
-      - name: Check Azure CLI Installation Path
-        run: whereis az
-
-      # Check Azure CLI Installation Directory Permissions
-      - name: Check Azure CLI Permissions
-        run: |
-          ls -l /opt/az
-          if [ -f "/opt/az/bin/az" ]; then
-            sudo chmod +x /opt/az/bin/az   # Ensure execute permission for the Azure CLI executable
-          else
-            echo "Azure CLI executable not found."
-          fi
-
       # Install the specific version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
@@ -63,7 +43,6 @@ jobs:
         run: |
           export PATH=$PATH:/opt/az/bin
           terraform plan -input=false
-
       # On push to "main", build or change infrastructure according to Terraform configuration files
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -73,7 +52,6 @@ jobs:
       - name: Deploy .NET Core app to Azure Web App
         run: |
           az webapp deployment source config-zip -g Marathon1 -n marathon-api --src ./publish9.zip
-
       # Deploy the Client to Azure Web App
       - name: Deploy Frontend to Azure Web App
         run: |
