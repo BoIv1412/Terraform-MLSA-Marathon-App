@@ -1,32 +1,21 @@
-# We strongly recommend using the required_providers block to set the
-# Azure Provider source and version being used
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">3.0.0"
+      version = ">=3.0.0"
     }
   }
 }
 
-
-# Configure the Microsoft Azure Provider
 provider "azurerm" {
-  skip_provider_registration = true # This is only required when the User, Service Principal, or Identity running Terraform lacks the permissions to register Azure Resource Providers.
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-
-    key_vault {
-      purge_soft_delete_on_destroy = true
-      //recover_soft_deleted_key_vaults = true
-    }
+  features {}
+  resource_provider_registrations {
+    enabled = false
   }
 }
 
 data "azurerm_client_config" "current" {}
-# Create a resource group
+
 resource "azurerm_resource_group" "marathon" {
   name     = var.resource_group_name
   location = var.location
@@ -54,7 +43,7 @@ resource "azurerm_windows_web_app" "marathon_api" {
     }
     cors {
       allowed_origins     = ["https://marathon-client.azurewebsites.net"]
-      support_credentials = true # Set to true if you want to allow credentials (like cookies or HTTP authentication) to be sent in the CORS request
+      support_credentials = true
     }
   }
 }
@@ -73,7 +62,7 @@ resource "azurerm_windows_web_app" "marathon_client" {
     }
     cors {
       allowed_origins     = ["https://marathon-api.azurewebsites.net"]
-      support_credentials = true # Set to true if you want to allow credentials (like cookies or HTTP authentication) to be sent in the CORS request
+      support_credentials = true
     }
   }
 }
@@ -83,8 +72,8 @@ resource "azurerm_mssql_server" "mssql_server" {
   resource_group_name          = azurerm_resource_group.marathon.name
   location                     = azurerm_resource_group.marathon.location
   version                      = "12.0"
-  administrator_login          = "Bojan"
-  administrator_login_password = "PreteshkoePomosh1@!"
+  administrator_login          = var.sql_admin_user
+  administrator_login_password = var.sql_admin_password
 
   tags = {
     environment = "production"
@@ -95,11 +84,6 @@ resource "azurerm_mssql_database" "mssql_database" {
   name      = var.sql_database_name
   server_id = azurerm_mssql_server.mssql_server.id
   sku_name  = "Basic"
-
-  # prevent the possibility of accidental data loss
-  lifecycle {
-    prevent_destroy = false
-  }
 }
 
 resource "azurerm_redis_cache" "redis" {
@@ -109,15 +93,13 @@ resource "azurerm_redis_cache" "redis" {
   capacity            = 2
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
-  redis_configuration {
-  }
+  redis_configuration {}
 }
 
 resource "azurerm_redis_firewall_rule" "redis_firewall" {
-  name                = var.redis_name
+  name                = "redis_firewall_rule"
   redis_cache_name    = azurerm_redis_cache.redis.name
   resource_group_name = azurerm_resource_group.marathon.name
   start_ip            = "0.0.0.0"
@@ -125,7 +107,7 @@ resource "azurerm_redis_firewall_rule" "redis_firewall" {
 }
 
 resource "azurerm_mssql_firewall_rule" "dbfirewall" {
-  name             = var.redis_firewall
+  name             = "db_firewall_rule"
   server_id        = azurerm_mssql_server.mssql_server.id
   start_ip_address = "0.0.0.0"
   end_ip_address   = "255.255.255.255"
@@ -145,45 +127,12 @@ resource "azurerm_key_vault_access_policy" "bojan_access" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = var.user_object_id
 
-  key_permissions = [
-    "Get",
-  ]
-
-  secret_permissions = [
-    "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
-  ]
-}
-
-data "azuread_service_principal" "terraform" {
-  display_name = var.display_name
-}
-
-resource "azurerm_key_vault_access_policy" "azurerm_key_vault_access_policy2" {
-  key_vault_id = azurerm_key_vault.key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azuread_service_principal.terraform.object_id
-  secret_permissions = [
-    "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
-  ]
+  key_permissions = ["Get"]
+  secret_permissions = ["Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"]
 }
 
 resource "azurerm_key_vault_secret" "key_vault_secret1" {
   name         = var.key_vault_secret_connection_string_name
-  value        = "Server=tcp:${azurerm_mssql_server.mssql_server.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};Persist Security Info=False;User ID=${azurerm_mssql_server.mssql_server.administrator_login}@${azurerm_mssql_server.mssql_server.name};Password=${azurerm_mssql_server.mssql_server.administrator_login_password};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  value        = "Server=tcp:${azurerm_mssql_server.mssql_server.name}.database.windows.net,1433;Initial Catalog=${azurerm_mssql_database.mssql_database.name};User ID=${var.sql_admin_user};Password=${var.sql_admin_password};Encrypt=True;Connection Timeout=30;"
   key_vault_id = azurerm_key_vault.key_vault.id
-
-  depends_on = [
-    azurerm_key_vault_access_policy.azurerm_key_vault_access_policy2
-  ]
-
-}
-
-resource "azurerm_key_vault_secret" "key_vault_secret2" {
-  name         = var.key_vault_secret_redis_connection_string_name
-  value        = azurerm_redis_cache.redis.primary_connection_string
-  key_vault_id = azurerm_key_vault.key_vault.id
-
-  depends_on = [
-    azurerm_key_vault_access_policy.azurerm_key_vault_access_policy2
-  ]
 }
