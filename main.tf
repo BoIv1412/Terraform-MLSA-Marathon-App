@@ -9,9 +9,6 @@ terraform {
 
 provider "azurerm" {
   features {}
-  resource_provider_registrations {
-    enabled = false
-  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -94,8 +91,6 @@ resource "azurerm_redis_cache" "redis" {
   family              = "C"
   sku_name            = "Basic"
   minimum_tls_version = "1.2"
-
-  redis_configuration {}
 }
 
 resource "azurerm_redis_firewall_rule" "redis_firewall" {
@@ -128,7 +123,9 @@ resource "azurerm_key_vault_access_policy" "bojan_access" {
   object_id    = var.user_object_id
 
   key_permissions = ["Get"]
-  secret_permissions = ["Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"]
+  secret_permissions = [
+    "Backup", "Delete", "Get", "List", "Purge", "Recover", "Restore", "Set"
+  ]
 }
 
 resource "azurerm_key_vault_secret" "key_vault_secret1" {
