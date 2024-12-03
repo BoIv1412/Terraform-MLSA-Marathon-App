@@ -106,7 +106,6 @@ resource "azurerm_redis_cache" "redis" {
   capacity            = 2
   family              = "C"
   sku_name            = "Basic"
-  enable_non_ssl_port = false
   minimum_tls_version = "1.2"
 
   redis_configuration {
