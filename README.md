@@ -1,6 +1,6 @@
 # Marathon Infrastructure Management with Terraform
 
-Welcome to the Marathon project infrastructure repository! This repository contains Terraform configurations to manage the infrastructure required to deploy the Marathon project. Marathon is a three-layer application developed for sprints and team collaboration within the Microsoft Learn Student Ambassadors (MLSA) initiative, combining Node.js and ASP.NET technologies.
+Welcome to the Marathon project infrastructure repository! This repository contains Terraform configurations to manage the infrastructure required to deploy the Marathon project. Marathon is a three-layer application developed for sprints and team collaboration within the Microsoft Learn Student Ambassadors (MLSA) initiative, combining Node.js and .NET technologies.
 
 ## Overview
 
